@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="AlgorithmVisualizer:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/AlgorithmVisualizer_jar</output-path>
+    <root id="archive" name="AlgorithmVisualizer.jar">
+      <element id="module-output" name="AlgorithmVisualizer" />
+    </root>
+  </artifact>
+</component>
