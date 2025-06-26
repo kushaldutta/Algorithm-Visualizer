@@ -4,6 +4,7 @@ let array = [];
 let arraySize = 250;
 let animationSpeed = 50;
 let isAnimating = false;
+let shouldStop = false;
 
 // Initialize the application
 window.onload = function() {
@@ -70,11 +71,28 @@ function updateSpeed() {
 
 // Disable all buttons during animation
 function setButtonsDisabled(disabled) {
-    const buttons = document.querySelectorAll('.btn');
+    const buttons = document.querySelectorAll('.btn:not(#stopBtn)');
+    const stopBtn = document.getElementById('stopBtn');
+    
     buttons.forEach(btn => {
         btn.disabled = disabled;
     });
+    
+    if (disabled) {
+        stopBtn.style.display = 'inline-block';
+        shouldStop = false;
+    } else {
+        stopBtn.style.display = 'none';
+        shouldStop = false;
+    }
+    
     isAnimating = disabled;
+}
+
+// Stop the current sorting algorithm
+function stopSorting() {
+    shouldStop = true;
+    setButtonsDisabled(false);
 }
 
 // Bubble Sort
@@ -84,7 +102,9 @@ async function startBubbleSort() {
     
     const n = array.length;
     for (let i = 0; i < n - 1; i++) {
+        if (shouldStop) break;
         for (let j = 0; j < n - i - 1; j++) {
+            if (shouldStop) break;
             if (array[j] > array[j + 1]) {
                 // Swap elements
                 [array[j], array[j + 1]] = [array[j + 1], array[j]];
@@ -104,14 +124,16 @@ async function startSelectionSort() {
     
     const n = array.length;
     for (let i = 0; i < n - 1; i++) {
+        if (shouldStop) break;
         let minIndex = i;
         for (let j = i + 1; j < n; j++) {
+            if (shouldStop) break;
             if (array[j] < array[minIndex]) {
                 minIndex = j;
             }
         }
         
-        if (minIndex !== i) {
+        if (minIndex !== i && !shouldStop) {
             [array[i], array[minIndex]] = [array[minIndex], array[i]];
             drawArray();
             await sleep(animationSpeed);
@@ -131,10 +153,10 @@ async function startQuickSort() {
 }
 
 async function quickSort(low, high) {
-    if (low < high) {
+    if (low < high && !shouldStop) {
         const pi = await partition(low, high);
-        await quickSort(low, pi - 1);
-        await quickSort(pi + 1, high);
+        if (!shouldStop) await quickSort(low, pi - 1);
+        if (!shouldStop) await quickSort(pi + 1, high);
     }
 }
 
@@ -143,6 +165,7 @@ async function partition(low, high) {
     let i = low - 1;
     
     for (let j = low; j <= high - 1; j++) {
+        if (shouldStop) break;
         if (array[j] < pivot) {
             i++;
             [array[i], array[j]] = [array[j], array[i]];
@@ -151,9 +174,11 @@ async function partition(low, high) {
         }
     }
     
-    [array[i + 1], array[high]] = [array[high], array[i + 1]];
-    drawArray();
-    await sleep(animationSpeed);
+    if (!shouldStop) {
+        [array[i + 1], array[high]] = [array[high], array[i + 1]];
+        drawArray();
+        await sleep(animationSpeed);
+    }
     
     return i + 1;
 }
@@ -168,15 +193,17 @@ async function startMergeSort() {
 }
 
 async function mergeSort(left, right) {
-    if (left < right) {
+    if (left < right && !shouldStop) {
         const mid = Math.floor((left + right) / 2);
-        await mergeSort(left, mid);
-        await mergeSort(mid + 1, right);
-        await merge(left, mid, right);
+        if (!shouldStop) await mergeSort(left, mid);
+        if (!shouldStop) await mergeSort(mid + 1, right);
+        if (!shouldStop) await merge(left, mid, right);
     }
 }
 
 async function merge(left, mid, right) {
+    if (shouldStop) return;
+    
     const leftSize = mid - left + 1;
     const rightSize = right - mid;
     
@@ -185,16 +212,18 @@ async function merge(left, mid, right) {
     
     // Copy data to temp arrays
     for (let i = 0; i < leftSize; i++) {
+        if (shouldStop) return;
         leftArray[i] = array[left + i];
     }
     for (let j = 0; j < rightSize; j++) {
+        if (shouldStop) return;
         rightArray[j] = array[mid + 1 + j];
     }
     
     // Merge the temp arrays
     let i = 0, j = 0, k = left;
     
-    while (i < leftSize && j < rightSize) {
+    while (i < leftSize && j < rightSize && !shouldStop) {
         if (leftArray[i] <= rightArray[j]) {
             array[k] = leftArray[i];
             i++;
@@ -208,7 +237,7 @@ async function merge(left, mid, right) {
     }
     
     // Copy remaining elements
-    while (i < leftSize) {
+    while (i < leftSize && !shouldStop) {
         array[k] = leftArray[i];
         drawArray();
         await sleep(animationSpeed);
@@ -216,7 +245,7 @@ async function merge(left, mid, right) {
         k++;
     }
     
-    while (j < rightSize) {
+    while (j < rightSize && !shouldStop) {
         array[k] = rightArray[j];
         drawArray();
         await sleep(animationSpeed);
@@ -232,19 +261,22 @@ async function startInsertionSort() {
     
     const n = array.length;
     for (let i = 1; i < n; i++) {
+        if (shouldStop) break;
         const key = array[i];
         let j = i - 1;
         
-        while (j >= 0 && array[j] > key) {
+        while (j >= 0 && array[j] > key && !shouldStop) {
             array[j + 1] = array[j];
             j--;
             drawArray();
             await sleep(animationSpeed);
         }
         
-        array[j + 1] = key;
-        drawArray();
-        await sleep(animationSpeed);
+        if (!shouldStop) {
+            array[j + 1] = key;
+            drawArray();
+            await sleep(animationSpeed);
+        }
     }
     
     setButtonsDisabled(false);
